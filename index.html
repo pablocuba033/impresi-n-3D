@@ -1,0 +1,1917 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Impresión 3D a pedido - Cotizador Futurista</title>
+  <style>
+    /* ==========================================================================
+       VARIABLES Y PALETA DE COLOR NEÓN / DARK FUTURISTA
+       ========================================================================== */
+    :root {
+      --bg-dark: #07090E;             /* Fondo principal negro profundo */
+      --bg-card: #0E131F;             /* Tarjetas negro grafito */
+      --bg-card-hover: #131A2B;       /* Hover de tarjeta */
+      --bg-input: #090C14;            /* Fondo de inputs */
+      --neon-cyan: #00E5FF;           /* Azul neón cian principal */
+      --neon-cyan-glow: rgba(0, 229, 255, 0.35); /* Resplandor neón */
+      --neon-cyan-subtle: rgba(0, 229, 255, 0.12); /* Tinte suave */
+      --neon-blue: #0070F3;           /* Azul eléctrico complementario */
+      --neon-blue-glow: rgba(0, 112, 243, 0.3);
+      --text-white: #F8FAFC;          /* Blanco nítido */
+      --text-muted: #94A3B8;          /* Gris plateado secundario */
+      --text-dim: #64748B;            /* Gris tenue para hints */
+      --border-dark: rgba(0, 229, 255, 0.16); /* Borde sutil cian */
+      --border-focus: #00E5FF;        /* Borde neón activo */
+      --error-neon: #FF426B;          /* Rojo neón para errores */
+      --error-bg: rgba(255, 66, 107, 0.12);
+      --whatsapp-color: #25D366;      /* Verde WhatsApp */
+      --whatsapp-glow: rgba(37, 211, 102, 0.38);
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(0, 229, 255, 0.14), transparent 60%),
+        radial-gradient(circle at 10% 40%, rgba(0, 112, 243, 0.06), transparent 40%),
+        radial-gradient(circle at 90% 75%, rgba(0, 229, 255, 0.05), transparent 45%);
+      background-attachment: fixed;
+      color: var(--text-white);
+      font-family: var(--font-family);
+      line-height: 1.45;
+      padding: 16px 12px 36px;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 660px; /* Mayor aprovechamiento del espacio horizontal */
+      margin: 0 auto;
+    }
+
+    /* ==========================================================================
+       ENCABEZADO FUTURISTA CON LUCES NEÓN
+       ========================================================================== */
+    .header {
+      text-align: center;
+      margin-bottom: 16px;
+      padding: 6px 4px;
+      position: relative;
+    }
+
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 48px;
+      height: 48px;
+      background: rgba(0, 229, 255, 0.08);
+      color: var(--neon-cyan);
+      border-radius: 14px;
+      border: 1px solid var(--neon-cyan);
+      box-shadow: 0 0 16px var(--neon-cyan-glow), inset 0 0 10px rgba(0, 229, 255, 0.2);
+      margin-bottom: 10px;
+    }
+
+    .header h1 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #FFFFFF;
+      letter-spacing: -0.01em;
+      margin-bottom: 4px;
+      line-height: 1.2;
+      text-shadow: 0 0 20px rgba(0, 229, 255, 0.3);
+    }
+
+    .header .subtitle {
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      font-weight: 400;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    /* ==========================================================================
+       BARRA DE PROGRESO / PASOS HUD
+       ========================================================================== */
+    .steps-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      margin-bottom: 14px;
+      padding: 4px;
+      background: rgba(14, 19, 31, 0.85);
+      border: 1px solid var(--border-dark);
+      border-radius: 30px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    }
+
+    .step-item {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 7px 4px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      border-radius: 20px;
+      transition: all 0.25s ease;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .step-item.active {
+      background: var(--neon-cyan-subtle);
+      color: var(--neon-cyan);
+      border: 1px solid rgba(0, 229, 255, 0.4);
+      box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+    }
+
+    .step-circle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-muted);
+      font-size: 0.7rem;
+      font-weight: 700;
+    }
+
+    .step-item.active .step-circle {
+      background: var(--neon-cyan);
+      color: #07090E;
+      box-shadow: 0 0 8px var(--neon-cyan);
+    }
+
+    /* ==========================================================================
+       TARJETAS Y SECCIONES
+       ========================================================================== */
+    .card {
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      padding: 16px 16px 18px;
+      margin-bottom: 12px; /* Reducción de espacio vacío vertical */
+      border: 1px solid var(--border-dark);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 1px rgba(0, 229, 255, 0.15);
+      position: relative;
+    }
+
+    .card-title {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #FFFFFF;
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(0, 229, 255, 0.12);
+    }
+
+    .step-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      background: var(--neon-cyan);
+      color: #07090E;
+      border-radius: 50%;
+      font-size: 0.8rem;
+      font-weight: 800;
+      box-shadow: 0 0 10px var(--neon-cyan);
+      flex-shrink: 0;
+    }
+
+    /* Cuadrícula de 2 columnas para aprovechar el espacio horizontal */
+    .grid-2col {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    @media (min-width: 520px) {
+      .grid-2col {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    /* ==========================================================================
+       CAMPOS DEL FORMULARIO
+       ========================================================================== */
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-group:last-child {
+      margin-bottom: 0;
+    }
+
+    label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-white);
+      margin-bottom: 6px;
+    }
+
+    .required {
+      color: var(--neon-cyan);
+      font-weight: 700;
+    }
+
+    .optional {
+      font-size: 0.78rem;
+      font-weight: 400;
+      color: var(--text-muted);
+    }
+
+    /* Inputs y Textareas Futuristas */
+    input[type="text"],
+    input[type="tel"],
+    input[type="number"],
+    textarea {
+      width: 100%;
+      min-height: 48px;
+      padding: 10px 14px;
+      font-size: 16px; /* Evita auto-zoom en iOS */
+      font-family: inherit;
+      color: var(--text-white);
+      background-color: var(--bg-input);
+      border: 1.5px solid var(--border-dark);
+      border-radius: var(--radius-sm);
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 72px;
+      line-height: 1.4;
+    }
+
+    input:focus,
+    textarea:focus {
+      background-color: #0D121F;
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 12px var(--neon-cyan-glow);
+    }
+
+    /* Estados de error */
+    .has-error input,
+    .has-error textarea {
+      border-color: var(--error-neon) !important;
+      background-color: var(--error-bg) !important;
+      box-shadow: 0 0 10px rgba(255, 66, 107, 0.3) !important;
+    }
+
+    .error-text {
+      display: none;
+      color: var(--error-neon);
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-top: 4px;
+    }
+
+    .has-error .error-text {
+      display: block;
+    }
+
+    .field-hint {
+      display: block;
+      font-size: 0.78rem;
+      color: var(--text-dim);
+      margin-top: 3px;
+    }
+
+    /* ==========================================================================
+       OPCIONES SELECCIONABLES (PILLS / CHIPS NEÓN)
+       ========================================================================== */
+    .pill-grid {
+      display: grid;
+      gap: 7px;
+    }
+
+    .pill-grid-2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .pill-grid-3 {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    @media (max-width: 420px) {
+      .pill-grid-3 {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    .pill-option {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 8px 10px;
+      border: 1.5px solid var(--border-dark);
+      border-radius: var(--radius-sm);
+      background: var(--bg-input);
+      cursor: pointer;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-align: center;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+
+    .pill-option input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .pill-option:hover {
+      background: #111728;
+      border-color: rgba(0, 229, 255, 0.35);
+      color: #FFFFFF;
+    }
+
+    .pill-option.selected {
+      background: var(--neon-cyan-subtle);
+      border-color: var(--neon-cyan);
+      color: var(--neon-cyan);
+      box-shadow: 0 0 12px var(--neon-cyan-glow);
+    }
+
+    /* ==========================================================================
+       TAMAÑOS PERSONALIZABLES Y PREESTABLECIDOS
+       ========================================================================== */
+    .size-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    @media (min-width: 520px) {
+      .size-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .size-card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 60px;
+      padding: 10px 12px;
+      border: 1.5px solid var(--border-dark);
+      border-radius: var(--radius-sm);
+      background: var(--bg-input);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: left;
+    }
+
+    .size-card input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .size-card:hover {
+      background: #111728;
+      border-color: rgba(0, 229, 255, 0.4);
+    }
+
+    .size-card.selected {
+      background: var(--neon-cyan-subtle);
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 14px var(--neon-cyan-glow);
+    }
+
+    .size-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 2px;
+    }
+
+    .size-card-name {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--text-white);
+    }
+
+    .size-card.selected .size-card-name {
+      color: var(--neon-cyan);
+    }
+
+    .size-card-desc {
+      font-size: 0.77rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .size-card-check {
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border-dark);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.3);
+    }
+
+    .size-card.selected .size-card-check {
+      border-color: var(--neon-cyan);
+      background: var(--neon-cyan);
+      color: #07090E;
+      box-shadow: 0 0 6px var(--neon-cyan);
+    }
+
+    .size-card-check svg {
+      display: none;
+      width: 9px;
+      height: 9px;
+      fill: none;
+      stroke: #07090E;
+      stroke-width: 3.5;
+    }
+
+    .size-card.selected .size-card-check svg {
+      display: block;
+    }
+
+    /* Tarjeta de Personalizado especial destacada */
+    .size-card-custom {
+      grid-column: 1 / -1;
+      border-style: dashed;
+      background: rgba(0, 112, 243, 0.05);
+    }
+
+    .size-card-custom.selected {
+      border-style: solid;
+      background: rgba(0, 229, 255, 0.1);
+    }
+
+    /* Cajón de medidas personalizadas interactivas */
+    .custom-dimensions-drawer {
+      display: none;
+      background: #0B0F19;
+      border: 1.5px solid var(--neon-cyan);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      margin-top: 10px;
+      box-shadow: 0 0 16px var(--neon-cyan-glow);
+      animation: fadeIn 0.25s ease-out;
+    }
+
+    .custom-dimensions-drawer.visible {
+      display: block;
+    }
+
+    .drawer-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--neon-cyan);
+      margin-bottom: 10px;
+    }
+
+    .drawer-feedback-badge {
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: rgba(0, 229, 255, 0.15);
+      color: var(--neon-cyan);
+      padding: 2px 8px;
+      border-radius: 12px;
+      border: 1px solid rgba(0, 229, 255, 0.3);
+    }
+
+    .dim-inputs-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .dim-input-col label {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      margin-bottom: 3px;
+    }
+
+    .dim-input-col input {
+      text-align: center;
+      font-weight: 700;
+      color: var(--neon-cyan);
+    }
+
+    /* ==========================================================================
+       CONTROL DE CANTIDAD CON BOTONES + Y -
+       ========================================================================== */
+    .quantity-stepper {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      max-width: 200px;
+      height: 48px;
+      background: var(--bg-input);
+      border: 1.5px solid var(--border-dark);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+    }
+
+    .stepper-btn {
+      width: 50px;
+      height: 100%;
+      background: #111728;
+      border: none;
+      color: var(--neon-cyan);
+      font-size: 1.3rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s;
+    }
+
+    .stepper-btn:hover {
+      background: #18233C;
+      color: #FFFFFF;
+    }
+
+    .stepper-btn:active {
+      background: var(--neon-cyan);
+      color: #07090E;
+    }
+
+    .quantity-stepper input[type="number"] {
+      border: none;
+      background: transparent;
+      text-align: center;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #FFFFFF;
+      height: 100%;
+      min-height: unset;
+      padding: 0;
+      -moz-appearance: textfield;
+      appearance: textfield;
+    }
+
+    .quantity-stepper input[type="number"]::-webkit-outer-spin-button,
+    .quantity-stepper input[type="number"]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    /* ==========================================================================
+       SELECCIÓN DE COLOR
+       ========================================================================== */
+    .color-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .color-pill {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 44px;
+      padding: 6px 12px;
+      border: 1.5px solid var(--border-dark);
+      border-radius: 24px;
+      background: var(--bg-input);
+      cursor: pointer;
+      font-size: 0.86rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+
+    .color-pill input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .color-pill:hover {
+      background: #111728;
+      border-color: rgba(0, 229, 255, 0.4);
+      color: #FFFFFF;
+    }
+
+    .color-pill.selected {
+      background: var(--neon-cyan-subtle);
+      border-color: var(--neon-cyan);
+      color: var(--neon-cyan);
+      box-shadow: 0 0 10px var(--neon-cyan-glow);
+    }
+
+    .color-dot {
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .color-otro-field {
+      margin-top: 10px;
+      padding: 10px 12px;
+      background: rgba(0, 229, 255, 0.06);
+      border-radius: var(--radius-sm);
+      border: 1px dashed var(--neon-cyan);
+      display: none;
+    }
+
+    .color-otro-field.visible {
+      display: block;
+      animation: fadeIn 0.2s ease-out;
+    }
+
+    /* ==========================================================================
+       TARJETA DE PRECIO ESTIMADO EN VIVO (HUD NEÓN)
+       ========================================================================== */
+    .price-box-highlight {
+      background: linear-gradient(135deg, rgba(0, 229, 255, 0.1) 0%, rgba(0, 112, 243, 0.08) 100%);
+      border: 2px solid var(--neon-cyan);
+      border-radius: var(--radius-md);
+      padding: 16px 14px;
+      text-align: center;
+      margin-bottom: 14px;
+      box-shadow: 0 0 25px var(--neon-cyan-glow), inset 0 0 15px rgba(0, 229, 255, 0.08);
+      position: relative;
+    }
+
+    .price-tag-badge {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #07090E;
+      background: var(--neon-cyan);
+      padding: 3px 10px;
+      border-radius: 20px;
+      margin-bottom: 6px;
+      box-shadow: 0 0 10px var(--neon-cyan);
+    }
+
+    .price-number {
+      font-size: 1.55rem;
+      font-weight: 800;
+      color: #FFFFFF;
+      line-height: 1.25;
+      margin-bottom: 4px;
+      text-shadow: 0 0 15px rgba(0, 229, 255, 0.5);
+    }
+
+    .price-subnote {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      font-weight: 400;
+      margin-bottom: 4px;
+    }
+
+    .price-units-hint {
+      font-size: 0.78rem;
+      color: var(--neon-cyan);
+      font-weight: 600;
+    }
+
+    /* ==========================================================================
+       AVISO DE ADJUNTO
+       ========================================================================== */
+    .notice-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(0, 112, 243, 0.08);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      margin-bottom: 16px;
+      border-left: 3px solid var(--neon-cyan);
+    }
+
+    .notice-box-icon {
+      font-size: 1.15rem;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .notice-box p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.35;
+      font-weight: 500;
+    }
+
+    /* ==========================================================================
+       BOTONES DE ACCIÓN
+       ========================================================================== */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      min-height: 52px;
+      padding: 12px 18px;
+      font-size: 1.02rem;
+      font-weight: 800;
+      border-radius: var(--radius-md);
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #00E5FF 0%, #0088FF 100%);
+      color: #050B14;
+      box-shadow: 0 0 22px var(--neon-cyan-glow);
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 0 32px rgba(0, 229, 255, 0.55);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .btn-whatsapp {
+      background: linear-gradient(135deg, #25D366 0%, #1EBE5D 100%);
+      color: #FFFFFF;
+      box-shadow: 0 0 22px var(--whatsapp-glow);
+    }
+
+    .btn-whatsapp:hover {
+      box-shadow: 0 0 32px rgba(37, 211, 102, 0.55);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: #0E1422;
+      color: var(--text-muted);
+      border: 1.5px solid var(--border-dark);
+    }
+
+    .btn-secondary:hover {
+      background: #141C30;
+      color: var(--neon-cyan);
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 12px var(--neon-cyan-glow);
+    }
+
+    /* ==========================================================================
+       SECCIÓN DE RESUMEN TÉCNICO (FICHA DE IMPRESIÓN)
+       ========================================================================== */
+    .summary-card {
+      display: none;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    .summary-card.visible {
+      display: block;
+    }
+
+    .summary-header {
+      text-align: center;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border-dark);
+    }
+
+    .summary-header h2 {
+      font-size: 1.3rem;
+      color: #FFFFFF;
+      margin-top: 4px;
+      text-shadow: 0 0 15px rgba(0, 229, 255, 0.3);
+    }
+
+    .summary-badge-top {
+      display: inline-block;
+      font-size: 0.74rem;
+      font-weight: 700;
+      background: rgba(0, 229, 255, 0.15);
+      color: var(--neon-cyan);
+      border: 1px solid var(--neon-cyan);
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+
+    /* Grilla de 2 columnas para no desperdiciar espacio vertical en el resumen */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+      background: #090D17;
+      border: 1px solid var(--border-dark);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      margin-bottom: 14px;
+    }
+
+    @media (min-width: 520px) {
+      .summary-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .summary-item {
+      display: flex;
+      flex-direction: column;
+      padding: 6px 4px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .summary-item.full-width {
+      grid-column: 1 / -1;
+    }
+
+    .summary-label {
+      color: var(--text-dim);
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 2px;
+    }
+
+    .summary-value {
+      color: var(--text-white);
+      font-size: 0.92rem;
+      font-weight: 700;
+      word-break: break-word;
+    }
+
+    .summary-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    /* ==========================================================================
+       CONFIRMACIÓN DE WHATSAPP
+       ========================================================================== */
+    .confirmation-banner {
+      display: none;
+      background: rgba(37, 211, 102, 0.12);
+      border: 1.5px solid var(--whatsapp-color);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      margin-top: 14px;
+      text-align: left;
+      animation: fadeIn 0.3s ease-out;
+      box-shadow: 0 0 20px var(--whatsapp-glow);
+    }
+
+    .confirmation-banner.visible {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .confirmation-banner .conf-icon {
+      font-size: 1.4rem;
+      line-height: 1;
+    }
+
+    .confirmation-banner h4 {
+      font-size: 0.95rem;
+      color: #A3FFC2;
+      margin-bottom: 3px;
+      font-weight: 700;
+    }
+
+    .confirmation-banner p {
+      font-size: 0.84rem;
+      color: #D1FAE5;
+      line-height: 1.35;
+    }
+
+    /* ==========================================================================
+       PIE DE PÁGINA
+       ========================================================================== */
+    .footer {
+      text-align: center;
+      margin-top: 20px;
+      padding-top: 10px;
+      color: var(--text-dim);
+      font-size: 0.8rem;
+    }
+
+    .footer-brand {
+      font-weight: 700;
+      color: var(--neon-cyan);
+      margin-bottom: 2px;
+    }
+
+    /* ==========================================================================
+       UTILIDADES Y ANIMACIONES
+       ========================================================================== */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- ENCABEZADO CON EFECTO NEÓN -->
+    <header class="header">
+      <div class="header-badge" aria-hidden="true">
+        <!-- Icono 3D de líneas cian -->
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+          <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+          <line x1="12" y1="22.08" x2="12" y2="12"></line>
+        </svg>
+      </div>
+      <h1 id="app-title">Impresión 3D a pedido</h1>
+      <p class="subtitle">Cuéntame qué necesitas y te doy un precio estimado al instante</p>
+    </header>
+
+    <!-- BARRA HUD DE PASOS -->
+    <nav class="steps-nav" aria-label="Progreso">
+      <div class="step-item active" id="indicator-step-1">
+        <span class="step-circle">1</span> Tus datos
+      </div>
+      <div class="step-item" id="indicator-step-2">
+        <span class="step-circle">2</span> Tu pedido
+      </div>
+      <div class="step-item" id="indicator-step-3">
+        <span class="step-circle">3</span> Precio y envío
+      </div>
+    </nav>
+
+    <!-- ==========================================================================
+         FORMULARIO PRINCIPAL
+         ========================================================================== -->
+    <form id="orderForm" novalidate>
+
+      <!-- PASO 1: TUS DATOS (Aprovecha 2 columnas en pantallas medianas) -->
+      <section class="card" id="card-datos">
+        <h2 class="card-title">
+          <span class="step-badge">1</span>
+          Tus datos
+        </h2>
+
+        <div class="grid-2col">
+          <!-- 1. Nombre -->
+          <div class="form-group" id="group-nombre">
+            <label for="nombre">Nombre <span class="required">*</span></label>
+            <input type="text" id="nombre" name="nombre" placeholder="Tu nombre completo" autocomplete="name" required>
+            <div class="error-text">Por favor, escribe tu nombre.</div>
+          </div>
+
+          <!-- 2. Teléfono / WhatsApp -->
+          <div class="form-group" id="group-telefono">
+            <label for="telefono">Teléfono / WhatsApp <span class="required">*</span></label>
+            <input type="tel" id="telefono" name="telefono" inputmode="numeric" placeholder="Ej: 987654321" autocomplete="tel" required>
+            <div class="error-text">Ingresa solo números (mínimo 7 dígitos).</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PASO 2: TU PEDIDO -->
+      <section class="card" id="card-pedido">
+        <h2 class="card-title">
+          <span class="step-badge">2</span>
+          Tu pedido
+        </h2>
+
+        <!-- 3. Tipo de pedido -->
+        <div class="form-group" id="group-tipo">
+          <label>Tipo de pedido <span class="required">*</span></label>
+          <div class="pill-grid pill-grid-3" role="radiogroup" aria-label="Tipo de pedido">
+            <label class="pill-option selected">
+              <input type="radio" name="tipoPedido" value="Prototipo" checked>
+              Prototipo
+            </label>
+            <label class="pill-option">
+              <input type="radio" name="tipoPedido" value="Repuesto">
+              Repuesto
+            </label>
+            <label class="pill-option">
+              <input type="radio" name="tipoPedido" value="Pieza a medida">
+              Pieza a medida
+            </label>
+            <label class="pill-option">
+              <input type="radio" name="tipoPedido" value="Figura decorativa">
+              Figura decorativa
+            </label>
+            <label class="pill-option" style="grid-column: span 2;">
+              <input type="radio" name="tipoPedido" value="Maqueta">
+              Maqueta
+            </label>
+          </div>
+          <div class="error-text">Selecciona el tipo de pedido.</div>
+        </div>
+
+        <!-- 4. Describe lo que quieres -->
+        <div class="form-group" id="group-descripcion">
+          <label for="descripcion">Describe lo que quieres <span class="required">*</span></label>
+          <textarea id="descripcion" name="descripcion" placeholder="Ej: soporte para celular, 8 cm de alto, con ranura para cable..." rows="2" required></textarea>
+          <div class="error-text">Describe brevemente lo que deseas imprimir.</div>
+        </div>
+
+        <!-- 5. Tamaño aproximado (Con opción Personalizada) -->
+        <div class="form-group" id="group-tamano">
+          <label>Tamaño aproximado <span class="required">*</span></label>
+          
+          <div class="size-grid" role="radiogroup" aria-label="Tamaño aproximado">
+            
+            <label class="size-card">
+              <input type="radio" name="tamano" value="pequeno">
+              <div class="size-card-header">
+                <span class="size-card-name">Pequeño</span>
+                <span class="size-card-check">
+                  <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </span>
+              </div>
+              <span class="size-card-desc">Hasta 5 cm</span>
+            </label>
+
+            <label class="size-card selected">
+              <input type="radio" name="tamano" value="mediano" checked>
+              <div class="size-card-header">
+                <span class="size-card-name">Mediano</span>
+                <span class="size-card-check">
+                  <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </span>
+              </div>
+              <span class="size-card-desc">5 a 12 cm</span>
+            </label>
+
+            <label class="size-card">
+              <input type="radio" name="tamano" value="grande">
+              <div class="size-card-header">
+                <span class="size-card-name">Grande</span>
+                <span class="size-card-check">
+                  <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </span>
+              </div>
+              <span class="size-card-desc">12 a 20 cm</span>
+            </label>
+
+            <label class="size-card">
+              <input type="radio" name="tamano" value="muyGrande">
+              <div class="size-card-header">
+                <span class="size-card-name">Muy grande</span>
+                <span class="size-card-check">
+                  <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </span>
+              </div>
+              <span class="size-card-desc">20 a 30 cm</span>
+            </label>
+
+            <!-- Opción 5: Personalizado -->
+            <label class="size-card size-card-custom" id="card-tamano-custom">
+              <input type="radio" name="tamano" value="personalizado">
+              <div class="size-card-header">
+                <span class="size-card-name">📐 Personalizado</span>
+                <span class="size-card-check">
+                  <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </span>
+              </div>
+              <span class="size-card-desc">Ingresa tus medidas exactas en cm</span>
+            </label>
+
+          </div>
+
+          <!-- Cajón desplegable para ingresar medidas personalizadas -->
+          <div class="custom-dimensions-drawer" id="panel-tamano-custom">
+            <div class="drawer-title">
+              <span>Medidas exactas de tu pieza:</span>
+              <span class="drawer-feedback-badge" id="custom-dims-calc-badge">~80 g • ~5.5 h</span>
+            </div>
+            <div class="dim-inputs-grid">
+              <div class="dim-input-col">
+                <label for="dim-largo">Largo (cm)</label>
+                <input type="number" id="dim-largo" value="10" min="1" max="40" step="0.5" inputmode="decimal">
+              </div>
+              <div class="dim-input-col">
+                <label for="dim-ancho">Ancho (cm)</label>
+                <input type="number" id="dim-ancho" value="8" min="1" max="40" step="0.5" inputmode="decimal">
+              </div>
+              <div class="dim-input-col">
+                <label for="dim-alto">Alto (cm)</label>
+                <input type="number" id="dim-alto" value="6" min="1" max="40" step="0.5" inputmode="decimal">
+              </div>
+            </div>
+            <div class="error-text" id="error-custom-dims">Por favor, ingresa dimensiones válidas mayores a 0.</div>
+          </div>
+
+        </div>
+
+        <!-- 6. Nivel de detalle -->
+        <div class="form-group" id="group-detalle">
+          <label>Nivel de detalle <span class="required">*</span></label>
+          <div class="pill-grid pill-grid-3" role="radiogroup" aria-label="Nivel de detalle">
+            <label class="pill-option">
+              <input type="radio" name="detalle" value="simple">
+              Simple
+            </label>
+            <label class="pill-option selected">
+              <input type="radio" name="detalle" value="normal" checked>
+              Normal
+            </label>
+            <label class="pill-option">
+              <input type="radio" name="detalle" value="muyDetallado">
+              Muy detallado
+            </label>
+          </div>
+        </div>
+
+        <!-- 7 y 8. Cantidad y Color en 2 columnas para optimizar espacio -->
+        <div class="grid-2col">
+          <!-- 7. Cantidad -->
+          <div class="form-group" id="group-cantidad">
+            <label for="cantidad">Cantidad <span class="required">*</span></label>
+            <div class="quantity-stepper">
+              <button type="button" class="stepper-btn" id="btn-qty-minus" aria-label="Restar">−</button>
+              <input type="number" id="cantidad" name="cantidad" value="1" min="1" max="999" inputmode="numeric" required>
+              <button type="button" class="stepper-btn" id="btn-qty-plus" aria-label="Sumar">+</button>
+            </div>
+            <div class="error-text">Mínimo 1.</div>
+          </div>
+
+          <!-- 8. Color (chips compactos) -->
+          <div class="form-group" id="group-color">
+            <label>Color <span class="required">*</span></label>
+            <div class="color-wrap" role="radiogroup" aria-label="Color">
+              <label class="color-pill selected">
+                <input type="radio" name="color" value="Blanco" checked>
+                <span class="color-dot" style="background: #FFFFFF;"></span> Blanco
+              </label>
+              <label class="color-pill">
+                <input type="radio" name="color" value="Negro">
+                <span class="color-dot" style="background: #111111;"></span> Negro
+              </label>
+              <label class="color-pill">
+                <input type="radio" name="color" value="Gris">
+                <span class="color-dot" style="background: #78909C;"></span> Gris
+              </label>
+              <label class="color-pill">
+                <input type="radio" name="color" value="Rojo">
+                <span class="color-dot" style="background: #FF3366;"></span> Rojo
+              </label>
+              <label class="color-pill">
+                <input type="radio" name="color" value="Azul">
+                <span class="color-dot" style="background: #00E5FF;"></span> Azul
+              </label>
+              <label class="color-pill">
+                <input type="radio" name="color" value="Verde">
+                <span class="color-dot" style="background: #00E676;"></span> Verde
+              </label>
+              <label class="color-pill">
+                <input type="radio" name="color" value="Amarillo">
+                <span class="color-dot" style="background: #FFEA00;"></span> Amarillo
+              </label>
+              <label class="color-pill">
+                <input type="radio" name="color" value="Otro">
+                <span class="color-dot" style="background: linear-gradient(45deg, #00E5FF, #FF3366, #FFEA00);"></span> Otro
+              </label>
+            </div>
+
+            <!-- Cuadro dinámico si elige "Otro" -->
+            <div class="color-otro-field" id="color-otro-box">
+              <label for="color-otro-text">Especifica el color:</label>
+              <input type="text" id="color-otro-text" placeholder="Ej: Dorado, Translúcido, Violeta...">
+              <div class="error-text">Por favor, escribe el color que necesitas.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 9. Notas adicionales -->
+        <div class="form-group" id="group-notas" style="margin-top: 4px;">
+          <label for="notas">Notas adicionales <span class="optional">(opcional)</span></label>
+          <textarea id="notas" name="notas" placeholder="Ej: ¿Requieres resistencia mecánica o entrega para una fecha específica?" rows="2"></textarea>
+        </div>
+
+      </section>
+
+      <!-- PASO 3: PRECIO Y ENVÍO -->
+      <section class="card" id="card-precio">
+        <h2 class="card-title">
+          <span class="step-badge">3</span>
+          Precio y envío
+        </h2>
+
+        <!-- Tarjeta de precio HUD Neón -->
+        <div class="price-box-highlight" aria-live="polite">
+          <span class="price-tag-badge">Cotización en vivo</span>
+          <div class="price-number" id="live-price-text">
+            Precio estimado: S/ 38 a S/ 55
+          </div>
+          <p class="price-subnote">
+            Es una estimación. El precio final se confirma por WhatsApp.
+          </p>
+          <div class="price-units-hint" id="live-price-hint">
+            Calculado para 1 unidad (Mediano)
+          </div>
+        </div>
+
+        <!-- Aviso de archivo 3D o foto -->
+        <div class="notice-box">
+          <span class="notice-box-icon" aria-hidden="true">📎</span>
+          <p>
+            Después de enviar tu pedido por WhatsApp, adjunta en el chat tu archivo 3D o una foto de referencia.
+          </p>
+        </div>
+
+        <!-- Botón Ver Resumen -->
+        <button type="submit" class="btn btn-primary" id="btn-ver-resumen">
+          Ver resumen de mi pedido
+        </button>
+      </section>
+
+    </form>
+
+    <!-- ==========================================================================
+         SECCIÓN DE RESUMEN (FICHA TÉCNICA)
+         ========================================================================== -->
+    <section class="card summary-card" id="summary-card" aria-live="polite">
+      
+      <div class="summary-header">
+        <span class="summary-badge-top">✓ Ficha de Cotización</span>
+        <h2>Resumen de tu pedido</h2>
+        <p class="subtitle" style="font-size: 0.86rem; color: var(--text-muted); margin-top: 2px;">
+          Verifica los detalles antes de enviarlos por WhatsApp
+        </p>
+      </div>
+
+      <!-- Grilla técnica de 2 columnas -->
+      <div class="summary-grid">
+        <div class="summary-item">
+          <span class="summary-label">Nombre</span>
+          <span class="summary-value" id="sum-nombre">-</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">WhatsApp</span>
+          <span class="summary-value" id="sum-telefono">-</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Tipo de pedido</span>
+          <span class="summary-value" id="sum-tipo">-</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Tamaño</span>
+          <span class="summary-value" id="sum-tamano">-</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Nivel de detalle</span>
+          <span class="summary-value" id="sum-detalle">-</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Cantidad</span>
+          <span class="summary-value" id="sum-cantidad">-</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Color</span>
+          <span class="summary-value" id="sum-color">-</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Notas</span>
+          <span class="summary-value" id="sum-notas">-</span>
+        </div>
+        <div class="summary-item full-width">
+          <span class="summary-label">Descripción de la pieza</span>
+          <span class="summary-value" id="sum-descripcion">-</span>
+        </div>
+      </div>
+
+      <!-- Tarjeta de precio dentro del resumen -->
+      <div class="price-box-highlight" style="margin-bottom: 14px;">
+        <span class="price-tag-badge">Estimación aproximada</span>
+        <div class="price-number" id="sum-precio">
+          Precio estimado: S/ 0 a S/ 0
+        </div>
+        <p class="price-subnote">
+          Es una estimación. El precio final se confirma por WhatsApp.
+        </p>
+      </div>
+
+      <!-- Botones de Acción -->
+      <div class="summary-actions">
+        <!-- Botón Enviar WhatsApp -->
+        <a href="#" class="btn btn-whatsapp" id="btn-enviar-whatsapp" target="_blank" rel="noopener noreferrer">
+          <!-- Icono SVG de WhatsApp -->
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12.031 2C6.495 2 2 6.495 2 12.031c0 1.907.534 3.738 1.547 5.337L2 22.5l5.297-1.508a10.024 10.024 0 0 0 4.734 1.196h.005c5.535 0 10.03-4.496 10.03-10.032 0-2.679-1.043-5.197-2.938-7.091C17.234 3.171 14.712 2 12.031 2zm5.836 14.199c-.244.688-1.424 1.319-1.968 1.378-.506.055-1.168.082-3.754-.984-2.887-1.191-4.743-4.135-4.888-4.327-.144-.192-1.169-1.554-1.169-2.964 0-1.41.737-2.106 1.002-2.392.264-.286.577-.358.77-.358.192 0 .385.002.553.01.179.009.418-.068.653.498.244.59.832 2.032.905 2.18.072.148.12.323.024.516-.096.192-.144.312-.288.48-.144.168-.303.376-.432.505-.145.144-.296.301-.127.59.168.289.749 1.233 1.608 1.998 1.107.985 2.04 1.291 2.33 1.435.289.145.457.12.625-.072.169-.192.722-.84 914-1.129.192-.289.385-.24.65-.144.264.096 1.683.794 1.972.938.288.145.48.217.553.337.072.12.072.698-.172 1.386z"/>
+          </svg>
+          Enviar pedido por WhatsApp
+        </a>
+
+        <!-- Botón Editar Pedido -->
+        <button type="button" class="btn btn-secondary" id="btn-editar-pedido">
+          ← Editar pedido
+        </button>
+      </div>
+
+      <!-- Aviso amigable al pulsar WhatsApp -->
+      <div class="confirmation-banner" id="confirm-box">
+        <span class="conf-icon" aria-hidden="true">🚀</span>
+        <div>
+          <h4>¡Listo! Tu pedido está listo para enviarse.</h4>
+          <p>
+            Si no se abrió WhatsApp, toca el botón otra vez. Te responderé con el precio final lo antes posible.
+          </p>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- PIE DE PÁGINA -->
+    <footer class="footer">
+      <p class="footer-brand" id="footer-brand-name">Impresión 3D a pedido</p>
+      <p>Servicio especializado de impresión 3D • Perú</p>
+    </footer>
+
+  </div>
+
+  <!-- ==========================================================================
+       LÓGICA JAVASCRIPT
+       ========================================================================== -->
+  <script>
+    // ========================================================================
+    // NOMBRE DEL NEGOCIO (puedes cambiarlo aquí fácilmente)
+    // ========================================================================
+    const NOMBRE_NEGOCIO = "Impresión 3D a pedido";
+
+    // ========================================================================
+    // BLOQUE CONFIG DE PRECIOS CALIBRADOS PARA EL MERCADO PERUANO
+    // ========================================================================
+    const CONFIG = {
+      precioPorGramo: 0.15,          // S/ 0.15 por gramo (cubre filamento PLA+, mermas y soportes)
+      precioPorHora: 3.50,           // S/ 3.50 por hora de máquina (energía, desgaste mecánico y boquilla)
+      preparacionFija: 6.00,         // S/ 6.00 fijos por pedido (setup, slicing, calibración de cama)
+      precioMinimo: 15.00,           // S/ 15.00 precio mínimo por pedido
+      margenRango: 0.18,             // rango de ±18% para estimación razonable
+      numeroWhatsApp: "51XXXXXXXXX", // número con código de país (51 para Perú)
+      moneda: "S/",
+
+      // Estimaciones base por tamaño predeterminado
+      tamanos: {
+        pequeno: {
+          nombre: "Pequeño",
+          desc: "hasta 5 cm",
+          gramos: 18,
+          horas: 1.2
+        },
+        mediano: {
+          nombre: "Mediano",
+          desc: "5 a 12 cm",
+          gramos: 85,
+          horas: 5.5
+        },
+        grande: {
+          nombre: "Grande",
+          desc: "12 a 20 cm",
+          gramos: 260,
+          horas: 16
+        },
+        muyGrande: {
+          nombre: "Muy grande",
+          desc: "20 a 30 cm",
+          gramos: 520,
+          horas: 32
+        }
+      },
+
+      // Multiplicador por nivel de detalle / resolución
+      detalles: {
+        simple: {
+          nombre: "Simple",
+          mult: 0.85
+        },
+        normal: {
+          nombre: "Normal",
+          mult: 1.0
+        },
+        muyDetallado: {
+          nombre: "Muy detallado",
+          mult: 1.45
+        }
+      }
+    };
+
+    // Inicializar títulos dinámicos
+    document.title = NOMBRE_NEGOCIO + " - Cotizador Futurista";
+    document.getElementById("app-title").textContent = NOMBRE_NEGOCIO;
+    document.getElementById("footer-brand-name").textContent = NOMBRE_NEGOCIO;
+
+    // ========================================================================
+    // REFERENCIAS DEL DOM
+    // ========================================================================
+    const form = document.getElementById("orderForm");
+    const summaryCard = document.getElementById("summary-card");
+    const confirmBox = document.getElementById("confirm-box");
+
+    // Indicadores de pasos
+    const indicatorStep1 = document.getElementById("indicator-step-1");
+    const indicatorStep2 = document.getElementById("indicator-step-2");
+    const indicatorStep3 = document.getElementById("indicator-step-3");
+
+    // Inputs
+    const inputNombre = document.getElementById("nombre");
+    const inputTelefono = document.getElementById("telefono");
+    const inputDescripcion = document.getElementById("descripcion");
+    const inputCantidad = document.getElementById("cantidad");
+    const inputNotas = document.getElementById("notas");
+    const inputColorOtro = document.getElementById("color-otro-text");
+    const colorOtroBox = document.getElementById("color-otro-box");
+
+    // Medidas personalizadas
+    const panelTamanoCustom = document.getElementById("panel-tamano-custom");
+    const inputDimLargo = document.getElementById("dim-largo");
+    const inputDimAncho = document.getElementById("dim-ancho");
+    const inputDimAlto = document.getElementById("dim-alto");
+    const customDimsCalcBadge = document.getElementById("custom-dims-calc-badge");
+
+    // Stepper cantidad
+    const btnQtyMinus = document.getElementById("btn-qty-minus");
+    const btnQtyPlus = document.getElementById("btn-qty-plus");
+
+    // Precios
+    const livePriceText = document.getElementById("live-price-text");
+    const livePriceHint = document.getElementById("live-price-hint");
+
+    // Botones
+    const btnEnviarWhatsApp = document.getElementById("btn-enviar-whatsapp");
+    const btnEditarPedido = document.getElementById("btn-editar-pedido");
+
+    // ========================================================================
+    // CÁLCULO DE MEDIDAS PERSONALIZADAS
+    // Estima gramos y horas a partir de las dimensiones en cm (L × An × Al)
+    // ========================================================================
+    function obtenerDatosTamano() {
+      const radioTamano = document.querySelector('input[name="tamano"]:checked');
+      const tamanoKey = radioTamano ? radioTamano.value : "mediano";
+
+      if (tamanoKey === "personalizado") {
+        const l = parseFloat(inputDimLargo.value) || 10;
+        const w = parseFloat(inputDimAncho.value) || 8;
+        const h = parseFloat(inputDimAlto.value) || 6;
+
+        // Volumen de la caja envolvente en cm3
+        const volCaja = Math.max(1, l * w * h);
+
+        // En impresión 3D (con 20% infill y perímetro estándar), el volumen de plástico
+        // suele ocupar aprox. el 18% al 22% de la caja envolvente
+        let gramos = Math.round(volCaja * 0.20 * 1.24); // Densidad PLA ~1.24 g/cm3
+        if (gramos < 12) gramos = 12;
+        if (gramos > 3500) gramos = 3500;
+
+        // Horas estimadas: ~16 g de filamento por hora + tiempo de capas por altura
+        let horas = +((gramos / 16) + (h * 0.08)).toFixed(1);
+        if (horas < 0.8) horas = 0.8;
+
+        // Actualizar indicador interactivo en el cajón
+        if (customDimsCalcBadge) {
+          customDimsCalcBadge.textContent = `~${gramos} g • ~${horas} h`;
+        }
+
+        return {
+          esPersonalizado: true,
+          nombre: "Personalizado",
+          desc: `${l} × ${w} × ${h} cm`,
+          largo: l,
+          ancho: w,
+          alto: h,
+          gramos: gramos,
+          horas: horas
+        };
+      } else {
+        const data = CONFIG.tamanos[tamanoKey] || CONFIG.tamanos.mediano;
+        return {
+          esPersonalizado: false,
+          nombre: data.nombre,
+          desc: data.desc,
+          gramos: data.gramos,
+          horas: data.horas
+        };
+      }
+    }
+
+    // ========================================================================
+    // CÁLCULO EN VIVO DE COTIZACIÓN
+    // ========================================================================
+    function calcularCotizacion() {
+      const dataTamano = obtenerDatosTamano();
+
+      // Detalle seleccionado
+      const radioDetalle = document.querySelector('input[name="detalle"]:checked');
+      const detalleKey = radioDetalle ? radioDetalle.value : "normal";
+      const dataDetalle = CONFIG.detalles[detalleKey] || CONFIG.detalles.normal;
+
+      // Cantidad
+      let cantidad = parseInt(inputCantidad.value, 10);
+      if (isNaN(cantidad) || cantidad < 1) cantidad = 1;
+
+      // Fórmula por unidad: (gramos × precioPorGramo) + (horas × mult × precioPorHora) + preparacionFija
+      const costoMaterial = dataTamano.gramos * CONFIG.precioPorGramo;
+      const costoTiempo = dataTamano.horas * dataDetalle.mult * CONFIG.precioPorHora;
+      const costoUnidad = costoMaterial + costoTiempo + CONFIG.preparacionFija;
+
+      // Multiplicar por cantidad
+      let total = costoUnidad * cantidad;
+
+      // Aplicar precio mínimo
+      if (total < CONFIG.precioMinimo) {
+        total = CONFIG.precioMinimo;
+      }
+
+      // Rango con margen redondeado al sol
+      const precioMin = Math.round(total * (1 - CONFIG.margenRango));
+      const precioMax = Math.round(total * (1 + CONFIG.margenRango));
+
+      return {
+        precioMin,
+        precioMax,
+        cantidad,
+        dataTamano,
+        dataDetalle
+      };
+    }
+
+    function actualizarPrecioEnVivo() {
+      const datos = calcularCotizacion();
+      livePriceText.textContent = `Precio estimado: ${CONFIG.moneda} ${datos.precioMin} a ${CONFIG.moneda} ${datos.precioMax}`;
+
+      const textoCantidad = datos.cantidad === 1 ? "1 unidad" : `${datos.cantidad} unidades`;
+      livePriceHint.textContent = `Calculado para ${textoCantidad} (${datos.dataTamano.nombre}: ${datos.dataTamano.desc})`;
+    }
+
+    // ========================================================================
+    // MANEJO DE SELECCIÓN Y ESTILOS NEÓN
+    // ========================================================================
+    function setupRadioGroupStyles() {
+      const allRadioInputs = document.querySelectorAll('input[type="radio"]');
+
+      allRadioInputs.forEach(radio => {
+        radio.addEventListener("change", function() {
+          const groupName = this.name;
+          const groupRadios = document.querySelectorAll(`input[name="${groupName}"]`);
+
+          groupRadios.forEach(r => {
+            const container = r.closest(".pill-option, .size-card, .color-pill");
+            if (container) {
+              container.classList.toggle("selected", r.checked);
+            }
+          });
+
+          // Control del cajón de Medidas Personalizadas
+          if (groupName === "tamano") {
+            if (this.value === "personalizado") {
+              panelTamanoCustom.classList.add("visible");
+            } else {
+              panelTamanoCustom.classList.remove("visible");
+            }
+          }
+
+          // Control del cuadro de Color Otro
+          if (groupName === "color") {
+            if (this.value === "Otro") {
+              colorOtroBox.classList.add("visible");
+              inputColorOtro.focus();
+            } else {
+              colorOtroBox.classList.remove("visible");
+              document.getElementById("group-color").classList.remove("has-error");
+            }
+          }
+
+          actualizarPrecioEnVivo();
+        });
+      });
+    }
+
+    // Escuchar cambios en los inputs de medidas personalizadas
+    [inputDimLargo, inputDimAncho, inputDimAlto].forEach(input => {
+      input.addEventListener("input", () => {
+        actualizarPrecioEnVivo();
+      });
+    });
+
+    // ========================================================================
+    // CONTROL DE CANTIDAD (+ y -)
+    // ========================================================================
+    btnQtyMinus.addEventListener("click", () => {
+      let val = parseInt(inputCantidad.value, 10);
+      val = (isNaN(val) || val <= 1) ? 1 : val - 1;
+      inputCantidad.value = val;
+      document.getElementById("group-cantidad").classList.remove("has-error");
+      actualizarPrecioEnVivo();
+    });
+
+    btnQtyPlus.addEventListener("click", () => {
+      let val = parseInt(inputCantidad.value, 10);
+      val = (isNaN(val) || val < 1) ? 1 : val + 1;
+      inputCantidad.value = val;
+      document.getElementById("group-cantidad").classList.remove("has-error");
+      actualizarPrecioEnVivo();
+    });
+
+    inputCantidad.addEventListener("input", () => {
+      inputCantidad.value = inputCantidad.value.replace(/[^0-9]/g, "");
+      if (parseInt(inputCantidad.value, 10) >= 1) {
+        document.getElementById("group-cantidad").classList.remove("has-error");
+      }
+      actualizarPrecioEnVivo();
+    });
+
+    inputTelefono.addEventListener("input", function() {
+      this.value = this.value.replace(/[^0-9]/g, "");
+      if (this.value.length >= 7) {
+        document.getElementById("group-telefono").classList.remove("has-error");
+      }
+    });
+
+    inputNombre.addEventListener("input", function() {
+      if (this.value.trim().length > 0) {
+        document.getElementById("group-nombre").classList.remove("has-error");
+      }
+    });
+
+    inputDescripcion.addEventListener("input", function() {
+      if (this.value.trim().length > 0) {
+        document.getElementById("group-descripcion").classList.remove("has-error");
+      }
+    });
+
+    inputColorOtro.addEventListener("input", function() {
+      if (this.value.trim().length > 0) {
+        document.getElementById("group-color").classList.remove("has-error");
+      }
+    });
+
+    // ========================================================================
+    // VALIDACIÓN
+    // ========================================================================
+    function validarFormulario() {
+      let valido = true;
+      let primerElementoConError = null;
+
+      // 1. Nombre
+      const nombreVal = inputNombre.value.trim();
+      const groupNombre = document.getElementById("group-nombre");
+      if (!nombreVal) {
+        groupNombre.classList.add("has-error");
+        valido = false;
+        if (!primerElementoConError) primerElementoConError = inputNombre;
+      } else {
+        groupNombre.classList.remove("has-error");
+      }
+
+      // 2. Teléfono
+      const telVal = inputTelefono.value.trim();
+      const groupTelefono = document.getElementById("group-telefono");
+      if (!telVal || telVal.length < 7) {
+        groupTelefono.classList.add("has-error");
+        valido = false;
+        if (!primerElementoConError) primerElementoConError = inputTelefono;
+      } else {
+        groupTelefono.classList.remove("has-error");
+      }
+
+      // 3. Descripción
+      const descVal = inputDescripcion.value.trim();
+      const groupDesc = document.getElementById("group-descripcion");
+      if (!descVal) {
+        groupDesc.classList.add("has-error");
+        valido = false;
+        if (!primerElementoConError) primerElementoConError = inputDescripcion;
+      } else {
+        groupDesc.classList.remove("has-error");
+      }
+
+      // 4. Medidas personalizadas (si aplica)
+      const radioTamano = document.querySelector('input[name="tamano"]:checked');
+      if (radioTamano && radioTamano.value === "personalizado") {
+        const l = parseFloat(inputDimLargo.value);
+        const w = parseFloat(inputDimAncho.value);
+        const h = parseFloat(inputDimAlto.value);
+        const errorDims = document.getElementById("error-custom-dims");
+
+        if (isNaN(l) || isNaN(w) || isNaN(h) || l <= 0 || w <= 0 || h <= 0) {
+          errorDims.style.display = "block";
+          valido = false;
+          if (!primerElementoConError) primerElementoConError = inputDimLargo;
+        } else {
+          errorDims.style.display = "none";
+        }
+      }
+
+      // 5. Color "Otro"
+      const colorChecked = document.querySelector('input[name="color"]:checked');
+      const groupColor = document.getElementById("group-color");
+      if (colorChecked && colorChecked.value === "Otro") {
+        const otroColorVal = inputColorOtro.value.trim();
+        if (!otroColorVal) {
+          groupColor.classList.add("has-error");
+          valido = false;
+          if (!primerElementoConError) primerElementoConError = inputColorOtro;
+        } else {
+          groupColor.classList.remove("has-error");
+        }
+      } else {
+        groupColor.classList.remove("has-error");
+      }
+
+      if (!valido && primerElementoConError) {
+        primerElementoConError.scrollIntoView({ behavior: "smooth", block: "center" });
+        if (typeof primerElementoConError.focus === "function") {
+          primerElementoConError.focus();
+        }
+      }
+
+      return valido;
+    }
+
+    // ========================================================================
+    // ENVÍO -> VER RESUMEN
+    // ========================================================================
+    form.addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      if (!validarFormulario()) return;
+
+      const nombre = inputNombre.value.trim();
+      const telefono = inputTelefono.value.trim();
+      const tipo = document.querySelector('input[name="tipoPedido"]:checked').value;
+      const descripcion = inputDescripcion.value.trim();
+      const colorRadio = document.querySelector('input[name="color"]:checked').value;
+      const colorFinal = colorRadio === "Otro" ? `Otro (${inputColorOtro.value.trim()})` : colorRadio;
+      const notas = inputNotas.value.trim();
+
+      const cotizacion = calcularCotizacion();
+      const tamanoTexto = `${cotizacion.dataTamano.nombre} (${cotizacion.dataTamano.desc})`;
+      const detalleTexto = cotizacion.dataDetalle.nombre;
+      const cantidadTexto = `${cotizacion.cantidad} ${cotizacion.cantidad === 1 ? 'unidad' : 'unidades'}`;
+      const precioRangoTexto = `${CONFIG.moneda} ${cotizacion.precioMin} a ${CONFIG.moneda} ${cotizacion.precioMax}`;
+
+      // Llenar Ficha Técnica de Resumen
+      document.getElementById("sum-nombre").textContent = nombre;
+      document.getElementById("sum-telefono").textContent = telefono;
+      document.getElementById("sum-tipo").textContent = tipo;
+      document.getElementById("sum-descripcion").textContent = descripcion;
+      document.getElementById("sum-tamano").textContent = tamanoTexto;
+      document.getElementById("sum-detalle").textContent = detalleTexto;
+      document.getElementById("sum-cantidad").textContent = cantidadTexto;
+      document.getElementById("sum-color").textContent = colorFinal;
+      document.getElementById("sum-notas").textContent = notas || "Ninguna";
+      document.getElementById("sum-precio").textContent = `Precio estimado: ${precioRangoTexto}`;
+
+      // Mensaje de WhatsApp estructurado
+      const mensajeWhatsApp = 
+`¡Hola! Quisiera cotizar una impresión 3D:
+
+*Nombre:* ${nombre}
+*Teléfono:* ${telefono}
+*Tipo de pedido:* ${tipo}
+*Descripción:* ${descripcion}
+*Tamaño:* ${tamanoTexto}
+*Nivel de detalle:* ${detalleTexto}
+*Cantidad:* ${cotizacion.cantidad}
+*Color:* ${colorFinal}
+*Notas adicionales:* ${notas || "Ninguna"}
+*Precio estimado:* ${precioRangoTexto}
+
+Te envío mi archivo o foto de referencia en este chat.`;
+
+      const urlWhatsApp = `https://wa.me/${CONFIG.numeroWhatsApp}?text=${encodeURIComponent(mensajeWhatsApp)}`;
+      btnEnviarWhatsApp.href = urlWhatsApp;
+
+      // Mostrar resumen
+      form.classList.add("hidden");
+      confirmBox.classList.remove("visible");
+      summaryCard.classList.add("visible");
+
+      indicatorStep1.classList.remove("active");
+      indicatorStep2.classList.remove("active");
+      indicatorStep3.classList.add("active");
+
+      summaryCard.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+
+    // ========================================================================
+    // EDITAR PEDIDO
+    // ========================================================================
+    btnEditarPedido.addEventListener("click", () => {
+      summaryCard.classList.remove("visible");
+      form.classList.remove("hidden");
+
+      indicatorStep1.classList.add("active");
+      indicatorStep2.classList.remove("active");
+      indicatorStep3.classList.remove("active");
+
+      form.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+
+    // ========================================================================
+    // BOTÓN WHATSAPP
+    // ========================================================================
+    btnEnviarWhatsApp.addEventListener("click", () => {
+      confirmBox.classList.add("visible");
+      confirmBox.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    });
+
+    // ========================================================================
+    // NAVEGACIÓN ENTRE PASOS
+    // ========================================================================
+    function irAlPaso(numPaso) {
+      if (summaryCard.classList.contains("visible")) {
+        summaryCard.classList.remove("visible");
+        form.classList.remove("hidden");
+      }
+
+      if (numPaso === 1) {
+        document.getElementById("card-datos").scrollIntoView({ behavior: "smooth", block: "start" });
+      } else if (numPaso === 2) {
+        document.getElementById("card-pedido").scrollIntoView({ behavior: "smooth", block: "start" });
+      } else if (numPaso === 3) {
+        document.getElementById("card-precio").scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+
+    indicatorStep1.addEventListener("click", () => irAlPaso(1));
+    indicatorStep2.addEventListener("click", () => irAlPaso(2));
+    indicatorStep3.addEventListener("click", () => irAlPaso(3));
+
+    // Observador de scroll para el indicador de pasos
+    if ("IntersectionObserver" in window) {
+      const stepObserver = new IntersectionObserver((entries) => {
+        if (summaryCard.classList.contains("visible")) return;
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            if (entry.target.id === "card-datos") {
+              indicatorStep1.classList.add("active");
+              indicatorStep2.classList.remove("active");
+              indicatorStep3.classList.remove("active");
+            } else if (entry.target.id === "card-pedido") {
+              indicatorStep1.classList.remove("active");
+              indicatorStep2.classList.add("active");
+              indicatorStep3.classList.remove("active");
+            } else if (entry.target.id === "card-precio") {
+              indicatorStep1.classList.remove("active");
+              indicatorStep2.classList.remove("active");
+              indicatorStep3.classList.add("active");
+            }
+          }
+        });
+      }, { threshold: 0.35 });
+
+      const cardDatos = document.getElementById("card-datos");
+      const cardPedido = document.getElementById("card-pedido");
+      const cardPrecio = document.getElementById("card-precio");
+      if (cardDatos) stepObserver.observe(cardDatos);
+      if (cardPedido) stepObserver.observe(cardPedido);
+      if (cardPrecio) stepObserver.observe(cardPrecio);
+    }
+
+    // Inicializar
+    setupRadioGroupStyles();
+    actualizarPrecioEnVivo();
+  </script>
+</body>
+</html>
